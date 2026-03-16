@@ -1,0 +1,128 @@
+[
+  {
+    "id": "goat-1-taopu",
+    "name": "Goat 1店",
+    "city": "上海",
+    "area": "普陀区桃浦湾",
+    "address": "",
+    "openingHours": "工作日 11:00–22:00，周末 10:00–22:00（示意，可按实际修改）",
+    "priceNote": "单次约 120 元",
+    "types": ["抱石"],
+    "beginnerFriendly": "yes",
+    "routeSetFrequency": "约每 4–6 周换线一次（示意）",
+    "lastRouteSetAt": "",
+    "hasClasses": "unknown",
+    "hasEvents": "unknown",
+    "socialSources": []
+  },
+  {
+    "id": "goat-2-xuhui",
+    "name": "Goat 2店",
+    "city": "上海",
+    "area": "徐汇区",
+    "address": "",
+    "openingHours": "工作日 11:00–22:00，周末 10:00–22:00（示意，可按实际修改）",
+    "priceNote": "单次约 120 元",
+    "types": ["抱石"],
+    "beginnerFriendly": "yes",
+    "routeSetFrequency": "约每 4–6 周换线一次（示意）",
+    "lastRouteSetAt": "",
+    "hasClasses": "unknown",
+    "hasEvents": "unknown",
+    "socialSources": [
+      {
+        "type": "xiaohongshu",
+        "label": "小红书主页",
+        "url": "https://xhslink.com/m/7keGi8h3dQz?xhsshare=CopyLink&appuid=58ada76750c4b47ed297d571&apptime=1773648937&share_id=78b76f23dd3d4365b8d3b3dfff77f9cd"
+      }
+    ]
+  },
+  {
+    "id": "benchmark-3-huiju",
+    "name": "Benchmark 3店",
+    "city": "上海",
+    "area": "长宁区荟聚",
+    "address": "",
+    "openingHours": "工作日 11:00–22:00，周末 10:00–22:00（示意，可按实际修改）",
+    "priceNote": "单次约 100 元；月卡 500+",
+    "types": ["抱石"],
+    "beginnerFriendly": "unknown",
+    "routeSetFrequency": "约每 4–6 周换线一次（示意）",
+    "lastRouteSetAt": "",
+    "hasClasses": "unknown",
+    "hasEvents": "unknown",
+    "socialSources": [
+      {
+        "type": "xiaohongshu",
+        "label": "小红书主页",
+        "url": "https://xhslink.com/m/67WdmUjAleu"
+      }
+    ]
+  },
+  {
+    "id": "banana-plus-jingan-kerry",
+    "name": "香蕉攀岩 Banana+ 店",
+    "city": "上海",
+    "area": "静安区嘉里合集",
+    "address": "",
+    "openingHours": "工作日 10:00–22:00，周末 10:00–22:00（示意，可按实际修改）",
+    "priceNote": "单次约 80 元（咸鱼或 cika 小程序渠道）",
+    "types": ["抱石"],
+    "beginnerFriendly": "yes",
+    "routeSetFrequency": "约每 4–6 周换线一次（示意）",
+    "lastRouteSetAt": "",
+    "hasClasses": "unknown",
+    "hasEvents": "unknown",
+    "socialSources": [
+      {
+        "type": "xiaohongshu",
+        "label": "小红书主页",
+        "url": "https://xhslink.com/m/3I3eiOBnegF?xhsshare=CopyLink&appuid=58ada76750c4b47ed297d571&apptime=1773649796&share_id=b3488d74224d4b299bf8fa9b7b54847c"
+      }
+    ]
+  },
+  {
+    "id": "beta-hard-jingan",
+    "name": "Beta 难点攀岩",
+    "city": "上海",
+    "area": "静安区",
+    "address": "",
+    "openingHours": "工作日 11:00–22:00，周末 10:00–22:00（示意，可按实际修改）",
+    "priceNote": "单次约 80 元",
+    "types": ["抱石"],
+    "beginnerFriendly": "yes",
+    "routeSetFrequency": "约每 4–6 周换线一次（示意）",
+    "lastRouteSetAt": "",
+    "hasClasses": "unknown",
+    "hasEvents": "unknown",
+    "socialSources": [
+      {
+        "type": "xiaohongshu",
+        "label": "小红书主页",
+        "url": "https://xhslink.com/m/8MiRIpUNcti"
+      }
+    ]
+  },
+  {
+    "id": "heibao-mixc-minhang",
+    "name": "粉抱 万象城店",
+    "city": "上海",
+    "area": "闵行区",
+    "address": "",
+    "openingHours": "工作日 10:00–22:00，周末 10:00–22:00（示意，可按实际修改）",
+    "priceNote": "单次约 80 元",
+    "types": ["抱石"],
+    "beginnerFriendly": "yes",
+    "routeSetFrequency": "约每 4–6 周换线一次（示意）",
+    "lastRouteSetAt": "",
+    "hasClasses": "unknown",
+    "hasEvents": "unknown",
+    "socialSources": [
+      {
+        "type": "xiaohongshu",
+        "label": "小红书主页",
+        "url": "https://xhslink.com/m/7Beo4sjkRRp"
+      }
+    ]
+  }
+]
