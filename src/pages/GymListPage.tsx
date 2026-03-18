@@ -43,7 +43,7 @@ export function GymListPage() {
           normalize(g.priceNote).includes(q)
         )
       })
-  }, [area, query])
+  }, [area, gyms, query])
 
   const displayList = askResult ? askResult.list : filtered
   const showAskReply = askResult !== null

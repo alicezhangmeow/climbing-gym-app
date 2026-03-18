@@ -36,6 +36,9 @@ export function GymDetailPage() {
   const { gym, loading } = useGym(gymId)
   const { items: latest, loading: latestLoading } = useLatestActivities(gymId, 10)
   const { posts: socialPosts, loading: socialPostsLoading } = useSocialPosts(gymId, 15)
+  const priceText =
+    gym?.priceNote?.trim() ||
+    (gym?.priceSingle != null ? `¥${gym.priceSingle}` : '')
 
   return (
     <AppShell>
@@ -81,7 +84,7 @@ export function GymDetailPage() {
           <div className="mt-4 grid grid-cols-1 gap-3">
             <Field label="开放时间" value={gym.openingHours} />
             <Field label="地址" value={gym.address} />
-            <Field label="价格" value={gym.priceNote} />
+            <Field label="价格" value={priceText} />
             <Field label="换线频率" value={gym.routeSetFrequency} />
             <Field label="最近一次换线" value={gym.lastRouteSetAt} />
           </div>
