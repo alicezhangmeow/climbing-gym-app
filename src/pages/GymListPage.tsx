@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { Chip } from '../components/Chip'
@@ -15,7 +15,7 @@ function normalize(s: string) {
 }
 
 export function GymListPage() {
-  const { gyms, loading, source } = useGyms()
+  const { gyms, loading, source, refresh } = useGyms()
   const [query, setQuery] = useState('')
   const [area, setArea] = useState<string>('all')
   const [askInput, setAskInput] = useState('')
@@ -47,6 +47,19 @@ export function GymListPage() {
 
   const displayList = askResult ? askResult.list : filtered
   const showAskReply = askResult !== null
+
+  useEffect(() => {
+    if (source !== 'supabase') return
+    const onFocus = () => {
+      void refresh()
+    }
+    window.addEventListener('focus', onFocus)
+    document.addEventListener('visibilitychange', onFocus)
+    return () => {
+      window.removeEventListener('focus', onFocus)
+      document.removeEventListener('visibilitychange', onFocus)
+    }
+  }, [refresh, source])
 
   const handleAskSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -177,7 +190,6 @@ export function GymListPage() {
                 </div>
                 <div className="mt-1 flex flex-wrap gap-1.5">
                   <Chip>{g.area}</Chip>
-                  {g.priceNote ? <Chip>{g.priceNote}</Chip> : null}
                   {g.beginnerFriendly === 'yes' ? <Chip>新手友好</Chip> : null}
                 </div>
               </div>

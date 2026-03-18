@@ -63,7 +63,6 @@ export function GymDetailPage() {
             <div className="mt-2 flex flex-wrap gap-1.5">
               <Chip>{gym.city}</Chip>
               <Chip>{gym.area}</Chip>
-              {gym.priceNote ? <Chip>{gym.priceNote}</Chip> : null}
               {gym.types.map((t) => (
                 <Chip key={t}>{t}</Chip>
               ))}
@@ -82,6 +81,7 @@ export function GymDetailPage() {
           <div className="mt-4 grid grid-cols-1 gap-3">
             <Field label="开放时间" value={gym.openingHours} />
             <Field label="地址" value={gym.address} />
+            <Field label="价格" value={gym.priceNote} />
             <Field label="换线频率" value={gym.routeSetFrequency} />
             <Field label="最近一次换线" value={gym.lastRouteSetAt} />
           </div>

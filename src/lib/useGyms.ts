@@ -66,6 +66,20 @@ export function useGyms() {
     supabase ? 'supabase' : 'local',
   )
 
+  const refresh = useMemo(() => {
+    return async () => {
+      if (!supabase) return
+      setLoading(true)
+      try {
+        const remote = await fetchGymsRemote()
+        setGyms(remote)
+        setSource('supabase')
+      } finally {
+        setLoading(false)
+      }
+    }
+  }, [])
+
   useEffect(() => {
     let cancelled = false
     ;(async () => {
@@ -84,7 +98,7 @@ export function useGyms() {
     }
   }, [])
 
-  return { gyms, loading, source }
+  return { gyms, loading, source, refresh }
 }
 
 export function useGym(gymId: string | undefined) {
