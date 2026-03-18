@@ -101,10 +101,13 @@ export function GymListPage() {
     if (!supabase) return
     if (source !== 'supabase') return
 
+    const DONE_KEY = 'geocoded:v2:'
+    const RUN_KEY = 'geocoding:v2:'
+
     const pending = gyms.filter((g) => {
       const has = g.lat != null && g.lng != null
       const addr = (g.address || '').trim()
-      const done = sessionStorage.getItem(`geocoded:${g.id}`) === '1'
+      const done = sessionStorage.getItem(`${DONE_KEY}${g.id}`) === '1'
       return !has && !!addr && !done
     })
     if (!pending.length) return
@@ -114,7 +117,7 @@ export function GymListPage() {
       for (const g of pending.slice(0, 6)) {
         if (cancelled) return
         try {
-          sessionStorage.setItem(`geocoding:${g.id}`, '1')
+          sessionStorage.setItem(`${RUN_KEY}${g.id}`, '1')
           const url =
             `/api/geocode?` +
             new URLSearchParams({
@@ -124,15 +127,19 @@ export function GymListPage() {
           const r = await fetch(url)
           const j = await r.json().catch(() => null)
           if (!j?.ok) {
-            sessionStorage.setItem(`geocoded:${g.id}`, '1')
             continue
           }
-          await supabase.from('gyms').update({ lat: j.lat, lng: j.lng }).eq('id', g.id)
-          sessionStorage.setItem(`geocoded:${g.id}`, '1')
+          const { error } = await supabase
+            .from('gyms')
+            .update({ lat: j.lat, lng: j.lng })
+            .eq('id', g.id)
+          if (!error) {
+            sessionStorage.setItem(`${DONE_KEY}${g.id}`, '1')
+          }
         } catch {
           // leave it for next attempt
         } finally {
-          sessionStorage.removeItem(`geocoding:${g.id}`)
+          sessionStorage.removeItem(`${RUN_KEY}${g.id}`)
         }
         await new Promise((r) => setTimeout(r, 260))
       }
