@@ -72,9 +72,71 @@ function guessAreaFromAddress(addr: string): string {
   return m?.[1] ?? ''
 }
 
+function cleanGymNameForId(input: string): string {
+  return input
+    .replace(/[【】\[\]（）()]/g, ' ')
+    .replace(/攀岩(馆|俱乐部|中心|基地)?/g, ' ')
+    .replace(/(店|门店|分店)$/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function toBasicPinyinSlug(input: string): string {
+  // Minimal mapping for common Chinese characters in gym names.
+  // Unknown chars are dropped. This keeps ids stable without extra deps.
+  const map: Record<string, string> = {
+    山: 'shan',
+    岩: 'yan',
+    攀: 'pan',
+    抱: 'bao',
+    石: 'shi',
+    难: 'nan',
+    点: 'dian',
+    五: 'wu',
+    角: 'jiao',
+    场: 'chang',
+    延: 'yan',
+    安: 'an',
+    西: 'xi',
+    路: 'lu',
+    环: 'huan',
+    球: 'qiu',
+    港: 'gang',
+    徐: 'xu',
+    汇: 'hui',
+    静: 'jing',
+    普: 'pu',
+    陀: 'tuo',
+    闵: 'min',
+    行: 'hang',
+    长: 'chang',
+    宁: 'ning',
+    嘉: 'jia',
+    里: 'li',
+  }
+
+  let out = ''
+  for (const ch of input) {
+    if (/[a-z0-9]/i.test(ch)) {
+      out += ch.toLowerCase()
+      continue
+    }
+    if (map[ch]) out += map[ch]
+  }
+  out = out.replace(/[^a-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')
+  return out
+}
+
+function suggestIdFromName(name: string, fallbackSeed: string): string {
+  const base = cleanGymNameForId(name)
+  const slug = toBasicPinyinSlug(base)
+  if (slug && slug.length >= 2) return slug
+  return `dp-${fnv1a8(fallbackSeed)}`
+}
+
 function buildBookmarklet(importUrlBase: string) {
   // Note: This runs on the review-site page. It only reads DOM of the current page.
-  const js = `(function(){function txt(el){return el?(el.innerText||el.textContent||'').trim():''}function firstLine(s){return (s||'').split(/\\n/)[0].trim()}function name(){return firstLine(document.title.replace(/-.*$/,'').trim())}function pick(list,maxLen){for(let i=0;i<list.length;i++){const s=list[i];if(!s)continue;const v=s.trim();if(!v)continue;if(maxLen&&v.length>maxLen)continue;if(/(点评|团购|套餐|收藏|长宁区休闲运动热门榜|榜单|更多|展开|收起)/.test(v))continue;return v}return ''}function guess(){const nodes=Array.from(document.querySelectorAll('div,span,p,li'));const addrCandidates=[];const openCandidates=[];const priceCandidates=[];for(const el of nodes){const s=txt(el);if(!s)continue;if(s.length>120)continue;if(/(号.*(室|楼)|\\d+号)/.test(s)&&/(路|街|大道|弄|号)/.test(s))addrCandidates.push(s);if(/(营业中|休息中)/.test(s)||/\\d{1,2}:\\d{2}\\s*[-~到]\\s*\\d{1,2}:\\d{2}/.test(s))openCandidates.push(s);if(/(人均|消费)[:：]?\\s*¥?\\s*\\d+/.test(s))priceCandidates.push(s)}let address=pick(addrCandidates,48);let opening=pick(openCandidates,48);if(opening){const m=opening.match(/(\\d{1,2}:\\d{2})\\s*[-~到]\\s*(\\d{1,2}:\\d{2})/);if(m)opening='每日 '+m[1]+'–'+m[2]}let priceLine=pick(priceCandidates,32);let priceSingle=null;const n=(priceLine.match(/\\d+/)||[])[0];if(n)priceSingle=Number(n);let img='';const im=document.querySelector('img');if(im&&im.src)img=im.src;return{address:address,opening:opening,priceLine:priceLine,priceSingle:priceSingle,imageUrl:img}}const g=guess();const payload={sourceUrl:location.href,name:name(),address:g.address,openingHours:g.opening,priceSingle:g.priceSingle,priceNote:g.priceLine||'',imageUrl:g.imageUrl||''};const json=JSON.stringify(payload);const b64=btoa(String.fromCharCode.apply(null,new TextEncoder().encode(json)));location.href='${importUrlBase}#'+encodeURIComponent(b64);})();`
+  const js = `(function(){function txt(el){return el?(el.innerText||el.textContent||'').trim():''}function firstLine(s){return (s||'').split(/\\n/)[0].trim()}function pickNameFromTitle(){var t=firstLine(document.title||'');t=t.replace(/-.*$/,'').trim();var m=t.match(/【([^】]+)】/);if(m&&m[1])return m[1].trim();t=t.split('_')[0].trim();t=t.split('电话')[0].trim();t=t.split('地址')[0].trim();t=t.split('价格')[0].trim();t=t.split('营业时间')[0].trim();return t.trim()}function pick(list,maxLen){for(let i=0;i<list.length;i++){const s=list[i];if(!s)continue;const v=s.trim();if(!v)continue;if(maxLen&&v.length>maxLen)continue;if(/(点评|团购|套餐|收藏|热门榜|榜单|更多|展开|收起)/.test(v))continue;return v}return ''}function guess(){const nodes=Array.from(document.querySelectorAll('div,span,p,li'));const addrCandidates=[];const openCandidates=[];const priceCandidates=[];for(const el of nodes){const s=txt(el);if(!s)continue;if(s.length>120)continue;if(/(号.*(室|楼)|\\d+号)/.test(s)&&/(路|街|大道|弄|号)/.test(s))addrCandidates.push(s);if(/(营业中|休息中)/.test(s)||/\\d{1,2}:\\d{2}\\s*[-~到]\\s*\\d{1,2}:\\d{2}/.test(s))openCandidates.push(s);if(/(人均|消费)[:：]?\\s*¥?\\s*\\d+/.test(s))priceCandidates.push(s)}let address=pick(addrCandidates,48);let opening=pick(openCandidates,48);if(opening){const m=opening.match(/(\\d{1,2}:\\d{2})\\s*[-~到]\\s*(\\d{1,2}:\\d{2})/);if(m)opening='每日 '+m[1]+'–'+m[2]}let priceLine=pick(priceCandidates,32);let priceSingle=null;const n=(priceLine.match(/\\d+/)||[])[0];if(n)priceSingle=Number(n);let img='';const im=document.querySelector('img');if(im&&im.src)img=im.src;return{address:address,opening:opening,priceLine:priceLine,priceSingle:priceSingle,imageUrl:img}}const g=guess();const payload={sourceUrl:location.href,name:pickNameFromTitle(),address:g.address,openingHours:g.opening,priceSingle:g.priceSingle,priceNote:g.priceLine||'',imageUrl:g.imageUrl||''};const json=JSON.stringify(payload);const b64=btoa(String.fromCharCode.apply(null,new TextEncoder().encode(json)));location.href='${importUrlBase}#'+encodeURIComponent(b64);})();`
   return `javascript:${js}`
 }
 
@@ -87,7 +149,8 @@ export function ImportPage() {
 
   const computedId = useMemo(() => {
     const seed = `${payload?.sourceUrl ?? ''}|${payload?.name ?? ''}|${payload?.address ?? ''}`
-    return seed.trim() ? `dp-${fnv1a8(seed)}` : `dp-${fnv1a8(String(Date.now()))}`
+    const nm = payload?.name ?? ''
+    return suggestIdFromName(nm, seed.trim() ? seed : String(Date.now()))
   }, [payload?.sourceUrl, payload?.name, payload?.address])
 
   const [id, setId] = useState(computedId)
