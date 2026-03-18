@@ -3,6 +3,7 @@ import { AppShell } from '../components/AppShell'
 import { Chip } from '../components/Chip'
 import { useGym } from '../lib/useGyms'
 import { useLatestActivities } from '../lib/useLatestActivities'
+import { useSocialPosts } from '../lib/useSocialPosts'
 
 function Field(props: { label: string; value?: string }) {
   const v = (props.value ?? '').trim()
@@ -34,6 +35,7 @@ export function GymDetailPage() {
   const { gymId } = useParams()
   const { gym, loading } = useGym(gymId)
   const { items: latest, loading: latestLoading } = useLatestActivities(gymId, 10)
+  const { posts: socialPosts, loading: socialPostsLoading } = useSocialPosts(gymId, 15)
 
   return (
     <AppShell>
@@ -178,8 +180,45 @@ export function GymDetailPage() {
           </div>
 
           <div className="mt-4 rounded-3xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+                社交媒体动态（链接 / 标题 / 时间）
+              </div>
+              <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                {socialPostsLoading ? '加载中…' : `${socialPosts.length} 条`}
+              </div>
+            </div>
+            {socialPosts.length ? (
+              <ul className="mt-2 space-y-2">
+                {socialPosts.map((p) => (
+                  <li key={p.id}>
+                    <a
+                      className="block rounded-2xl border border-zinc-200 px-3 py-2 text-sm text-zinc-900 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:bg-zinc-900"
+                      href={p.url}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <span className="font-medium">{p.title}</span>
+                      <div className="mt-0.5 flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                        <span>{p.sourceLabel}</span>
+                        {p.publishedAt ? (
+                          <span>{formatDT(p.publishedAt)}</span>
+                        ) : null}
+                      </div>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
+                这里展示从小红书/公众号等聚合来的最新链接，只存标题和时间，点开跳转原平台。在 Supabase 建好 social_posts 表并录入或跑 RSS 脚本后即可显示。
+              </p>
+            )}
+          </div>
+
+          <div className="mt-4 rounded-3xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
             <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
-              社交媒体
+              社交媒体入口
             </div>
             {gym.socialSources.length ? (
               <ul className="mt-2 space-y-2">

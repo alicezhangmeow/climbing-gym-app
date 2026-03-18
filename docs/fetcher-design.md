@@ -63,10 +63,18 @@ using (true);
 
 ## 最小可落地流程（推荐你先用这个）
 
-1. 你先在 Supabase 的 `gyms.social_sources` 里，给每家馆填 1–3 个入口链接（官网 / 公众号文章合集页 / 小红书主页等）。\n+2. 新增一个 `social_posts` 表（上面的 SQL）。\n+3. V1 先不写任何抓取：详情页展示“入口链接列表”。\n+4. V1.1 再做“RSS 聚合”：\n+   - 只对 `type=website` 且 URL 看起来是 RSS 的源抓取\n+   - 写一个定时任务（GitHub Actions / Supabase Edge Function / 你自己的小服务器 Cron）每 1–6 小时跑一次\n+   - 将拉到的条目 upsert 进 `social_posts`\n+
-这样就已经能解决“我得反复翻各个平台找信息”的主要痛点：用户打开某个馆 → 看到最新动态列表 → 点出去看原文。
+1. 在 Supabase 的 `gyms.social_sources` 里，给每家馆填 1–3 个入口链接（官网 / 公众号文章合集页 / 小红书主页等）。
+2. 新增 `social_posts` 表（见上文 SQL 或 `docs/latest-activity-setup.md`）。
+3. 详情页已支持展示「社交媒体动态」：读 `social_posts`，展示链接 + 标题 + 时间。
+4. RSS 聚合：用仓库里的 `pnpm run fetch-rss`（需配置环境变量），或 GitHub Actions / Cron 定时跑同一命令，将拉到的条目 upsert 进 `social_posts`。
+
+这样就能实现：用户打开某馆 → 看到最新动态列表（链接/标题/时间）→ 点开跳转原平台阅读。“我得反复翻各个平台找信息”的主要痛点：用户打开某个馆 → 看到最新动态列表 → 点出去看原文。
 
 ## 触发方式（3 选 1）
 
-- **GitHub Actions 定时**：最便宜好用，但需要仓库（适合你后面把项目放 GitHub）\n+- **Supabase Edge Function + Cron**：更“产品化”，但配置稍复杂\n+- **本机脚本手动跑**：最简单，适合你前期边试边调
+- **本机脚本手动跑**：在项目根目录执行（需先 `pnpm install` 或 `npm install`），环境变量填 Supabase 项目 URL、**Service Role Key**（在 Supabase → Project Settings → API 里，勿泄露到前端）、岩馆 id、RSS 地址等。  
+  示例：  
+  `SUPABASE_URL=https://xxx.supabase.co SUPABASE_SERVICE_ROLE_KEY=xxx GYM_ID=goat-2-xuhui SOURCE_LABEL=官网 SOURCE_TYPE=website RSS_URL=https://example.com/feed.xml pnpm run fetch-rss`
+- **GitHub Actions 定时**：在仓库里加一份 workflow，用 Secrets 存 `SUPABASE_SERVICE_ROLE_KEY` 等，定时执行 `pnpm run fetch-rss`（可为每个馆/RSS 源配一组 env）。
+- **Supabase Edge Function + Cron**：把拉 RSS + 写 `social_posts` 的逻辑放到 Edge Function，用 Cron 触发。
 

@@ -11,6 +11,7 @@ type GymRow = {
   address: string | null
   opening_hours: string | null
   price_note: string | null
+  price_single?: number | null
   types: GymType[] | null
   beginner_friendly: YesNoUnknown | null
   route_set_frequency: string | null
@@ -29,6 +30,7 @@ function rowToGym(r: GymRow): Gym {
     address: r.address ?? '',
     openingHours: r.opening_hours ?? '',
     priceNote: r.price_note ?? '',
+    priceSingle: r.price_single ?? undefined,
     types: r.types ?? [],
     beginnerFriendly: r.beginner_friendly ?? 'unknown',
     routeSetFrequency: r.route_set_frequency ?? '',

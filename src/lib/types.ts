@@ -24,6 +24,8 @@ export type Gym = {
   address: string
   openingHours: string
   priceNote: string
+  /** 单次价格（元），用于排序与筛选，可选 */
+  priceSingle?: number
 
   types: GymType[]
   beginnerFriendly: YesNoUnknown
