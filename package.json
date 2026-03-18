@@ -9,7 +9,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "fetch-rss": "node scripts/fetch-rss-to-supabase.mjs"
+    "fetch-rss": "node scripts/fetch-rss-to-supabase.mjs",
+    "geocode-amap": "node scripts/geocode-amap-to-supabase.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.99.1",
@@ -23,6 +24,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.0",
+    "@vercel/node": "^5.3.17",
     "autoprefixer": "^10.4.27",
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.0.1",

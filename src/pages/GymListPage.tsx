@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { Chip } from '../components/Chip'
 import { useGyms } from '../lib/useGyms'
+import { supabase } from '../lib/supabase'
 import {
   parseAskIntent,
   filterAndSortGyms,
@@ -94,6 +95,54 @@ export function GymListPage() {
       { enableHighAccuracy: true, maximumAge: 60_000, timeout: 8_000 },
     )
   }, [])
+
+  // When a new gym is added (no coords yet), geocode and write back.
+  useEffect(() => {
+    if (!supabase) return
+    if (source !== 'supabase') return
+
+    const pending = gyms.filter((g) => {
+      const has = g.lat != null && g.lng != null
+      const addr = (g.address || '').trim()
+      const done = sessionStorage.getItem(`geocoded:${g.id}`) === '1'
+      return !has && !!addr && !done
+    })
+    if (!pending.length) return
+
+    let cancelled = false
+    ;(async () => {
+      for (const g of pending.slice(0, 6)) {
+        if (cancelled) return
+        try {
+          sessionStorage.setItem(`geocoding:${g.id}`, '1')
+          const url =
+            `/api/geocode?` +
+            new URLSearchParams({
+              address: g.address,
+              city: g.city || '上海',
+            }).toString()
+          const r = await fetch(url)
+          const j = await r.json().catch(() => null)
+          if (!j?.ok) {
+            sessionStorage.setItem(`geocoded:${g.id}`, '1')
+            continue
+          }
+          await supabase.from('gyms').update({ lat: j.lat, lng: j.lng }).eq('id', g.id)
+          sessionStorage.setItem(`geocoded:${g.id}`, '1')
+        } catch {
+          // leave it for next attempt
+        } finally {
+          sessionStorage.removeItem(`geocoding:${g.id}`)
+        }
+        await new Promise((r) => setTimeout(r, 260))
+      }
+      await refresh()
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [gyms, refresh, source])
 
   const handleAskSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -203,11 +252,11 @@ export function GymListPage() {
                 <div className="mt-1 flex flex-wrap gap-1.5">
                   {g.isClosedForRouteSet === 'yes' ? <Chip>闭馆换线</Chip> : null}
                 </div>
-              </div>
-              <div className="shrink-0 text-sm text-zinc-500 dark:text-zinc-400">
-                {userPos && g.lat != null && g.lng != null
-                  ? `${haversineKm(userPos, { lat: g.lat, lng: g.lng }).toFixed(1)} km`
-                  : '查看'}
+                {userPos && g.lat != null && g.lng != null ? (
+                  <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                    {haversineKm(userPos, { lat: g.lat, lng: g.lng }).toFixed(1)} km
+                  </div>
+                ) : null}
               </div>
             </div>
           </Link>
