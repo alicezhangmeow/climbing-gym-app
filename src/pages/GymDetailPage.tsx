@@ -3,7 +3,6 @@ import { AppShell } from '../components/AppShell'
 import { Chip } from '../components/Chip'
 import { useGym } from '../lib/useGyms'
 import { useLatestActivities } from '../lib/useLatestActivities'
-import { useSocialPosts } from '../lib/useSocialPosts'
 
 function Field(props: { label: string; value?: string }) {
   const v = (props.value ?? '').trim()
@@ -35,8 +34,8 @@ export function GymDetailPage() {
   const { gymId } = useParams()
   const { gym, loading } = useGym(gymId)
   const { items: latest, loading: latestLoading } = useLatestActivities(gymId, 10)
-  const { posts: socialPosts, loading: socialPostsLoading } = useSocialPosts(gymId, 15)
   const priceText = gym?.priceSingle != null ? `¥${gym.priceSingle}` : '暂无'
+  const showBouldering = !!gym?.types?.includes('抱石')
 
   return (
     <AppShell>
@@ -62,29 +61,44 @@ export function GymDetailPage() {
               {gym.name}
             </div>
             <div className="mt-2 flex flex-wrap gap-1.5">
-              <Chip>{gym.city}</Chip>
-              <Chip>{gym.area}</Chip>
-              {gym.types.map((t) => (
-                <Chip key={t}>{t}</Chip>
-              ))}
-              {gym.beginnerFriendly === 'yes' ? (
-                <Chip>新手友好</Chip>
-              ) : gym.beginnerFriendly === 'no' ? (
-                <Chip>偏进阶</Chip>
-              ) : null}
+              {showBouldering ? <Chip>抱石</Chip> : null}
+              {gym.beginnerFriendly === 'yes' ? <Chip>新手友好</Chip> : null}
             </div>
 
-            <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-300">
-              这个页面会逐步补齐：开放时间、环境、换线节奏、课程、活动，以及社交媒体的最新动态入口。
-            </p>
+            <div className="mt-3 grid grid-cols-1 gap-3">
+              <Field label="地址" value={gym.address} />
+              <Field label="开放时间" value={gym.openingHours} />
+              <Field label="价格" value={priceText} />
+            </div>
           </div>
 
-          <div className="mt-4 grid grid-cols-1 gap-3">
-            <Field label="开放时间" value={gym.openingHours} />
-            <Field label="地址" value={gym.address} />
-            <Field label="价格" value={priceText} />
-            <Field label="换线频率" value={gym.routeSetFrequency} />
-            <Field label="最近一次换线" value={gym.lastRouteSetAt} />
+          <div className="mt-4 rounded-3xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+              社交媒体入口
+            </div>
+            {gym.socialSources.length ? (
+              <ul className="mt-2 space-y-2">
+                {gym.socialSources.map((s) => (
+                  <li key={`${s.type}-${s.url}`}>
+                    <a
+                      className="block rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:bg-zinc-900"
+                      href={s.url}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                        {s.label}
+                      </div>
+                      <div className="mt-0.5 break-all">{s.url}</div>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
+                暂无入口链接（可用导入/编辑补齐小红书、公众号等链接）。
+              </p>
+            )}
           </div>
 
           <div className="mt-4 rounded-3xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
@@ -175,73 +189,7 @@ export function GymDetailPage() {
               </ul>
             ) : (
               <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
-                这里会展示“活动 + 换线”的最新记录。下一步你可以在 Supabase 里为这家馆新增几条活动/换线记录作为测试。
-              </p>
-            )}
-          </div>
-
-          <div className="mt-4 rounded-3xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="flex items-center justify-between gap-3">
-              <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
-                社交媒体动态（链接 / 标题 / 时间）
-              </div>
-              <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                {socialPostsLoading ? '加载中…' : `${socialPosts.length} 条`}
-              </div>
-            </div>
-            {socialPosts.length ? (
-              <ul className="mt-2 space-y-2">
-                {socialPosts.map((p) => (
-                  <li key={p.id}>
-                    <a
-                      className="block rounded-2xl border border-zinc-200 px-3 py-2 text-sm text-zinc-900 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:bg-zinc-900"
-                      href={p.url}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <span className="font-medium">{p.title}</span>
-                      <div className="mt-0.5 flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
-                        <span>{p.sourceLabel}</span>
-                        {p.publishedAt ? (
-                          <span>{formatDT(p.publishedAt)}</span>
-                        ) : null}
-                      </div>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
-                这里展示从小红书/公众号等聚合来的最新链接，只存标题和时间，点开跳转原平台。在 Supabase 建好 social_posts 表并录入或跑 RSS 脚本后即可显示。
-              </p>
-            )}
-          </div>
-
-          <div className="mt-4 rounded-3xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
-              社交媒体入口
-            </div>
-            {gym.socialSources.length ? (
-              <ul className="mt-2 space-y-2">
-                {gym.socialSources.map((s) => (
-                  <li key={`${s.type}-${s.url}`}>
-                    <a
-                      className="block rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:bg-zinc-900"
-                      href={s.url}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                        {s.label}
-                      </div>
-                      <div className="mt-0.5 break-all">{s.url}</div>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
-                先留空。下一阶段我们会把每家馆的公众号/小红书等入口链接录入，并展示“最新动态”列表。
+                暂无记录。后续我们再接入“活动/换线”的聚合写入即可显示。
               </p>
             )}
           </div>
