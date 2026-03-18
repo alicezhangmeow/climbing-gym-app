@@ -36,7 +36,7 @@ export function GymDetailPage() {
   const { gym, loading } = useGym(gymId)
   const { items: latest, loading: latestLoading } = useLatestActivities(gymId, 10)
   const { posts: socialPosts, loading: socialPostsLoading } = useSocialPosts(gymId, 15)
-  const priceText = gym?.priceSingle != null ? `¥${gym.priceSingle}` : ''
+  const priceText = gym?.priceSingle != null ? `¥${gym.priceSingle}` : '暂无'
 
   return (
     <AppShell>
