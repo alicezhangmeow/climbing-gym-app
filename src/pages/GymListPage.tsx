@@ -14,27 +14,32 @@ function normalize(s: string) {
   return s.trim().toLowerCase()
 }
 
+function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+  const R = 6371
+  const dLat = ((b.lat - a.lat) * Math.PI) / 180
+  const dLng = ((b.lng - a.lng) * Math.PI) / 180
+  const lat1 = (a.lat * Math.PI) / 180
+  const lat2 = (b.lat * Math.PI) / 180
+  const x =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2
+  return 2 * R * Math.asin(Math.sqrt(x))
+}
+
 export function GymListPage() {
   const { gyms, loading, source, refresh } = useGyms()
   const [query, setQuery] = useState('')
-  const [area, setArea] = useState<string>('all')
   const [askInput, setAskInput] = useState('')
   const [askResult, setAskResult] = useState<{
     summary: string
     subtext: string
     list: Gym[]
   } | null>(null)
-
-  const areas = useMemo(() => {
-    const set = new Set<string>()
-    for (const g of gyms) set.add(g.area)
-    return ['all', ...Array.from(set).sort((a, b) => a.localeCompare(b, 'zh-Hans-CN'))]
-  }, [gyms])
+  const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null)
 
   const filtered = useMemo(() => {
     const q = normalize(query)
     return gyms
-      .filter((g) => (area === 'all' ? true : g.area === area))
       .filter((g) => {
         if (!q) return true
         const price = g.priceSingle != null ? String(g.priceSingle) : ''
@@ -44,9 +49,24 @@ export function GymListPage() {
           normalize(price).includes(q)
         )
       })
-  }, [area, gyms, query])
+  }, [gyms, query])
 
-  const displayList = askResult ? askResult.list : filtered
+  const sortedByDistance = useMemo(() => {
+    const list = [...filtered]
+    if (!userPos) return list
+    return list.sort((ga, gb) => {
+      const aOk = ga.lat != null && ga.lng != null
+      const bOk = gb.lat != null && gb.lng != null
+      if (!aOk && !bOk) return 0
+      if (aOk && !bOk) return -1
+      if (!aOk && bOk) return 1
+      const da = haversineKm(userPos, { lat: ga.lat as number, lng: ga.lng as number })
+      const db = haversineKm(userPos, { lat: gb.lat as number, lng: gb.lng as number })
+      return da - db
+    })
+  }, [filtered, userPos])
+
+  const displayList = askResult ? askResult.list : sortedByDistance
   const showAskReply = askResult !== null
 
   useEffect(() => {
@@ -61,6 +81,19 @@ export function GymListPage() {
       document.removeEventListener('visibilitychange', onFocus)
     }
   }, [refresh, source])
+
+  useEffect(() => {
+    if (!navigator.geolocation) return
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+      },
+      () => {
+        setUserPos(null)
+      },
+      { enableHighAccuracy: true, maximumAge: 60_000, timeout: 8_000 },
+    )
+  }, [])
 
   const handleAskSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -132,30 +165,9 @@ export function GymListPage() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="搜索：馆名 / 区域 / 价格关键词…"
+            placeholder="搜索：馆名 / 区 / 价格数字…"
             className="w-full rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none ring-0 placeholder:text-zinc-400 focus:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder:text-zinc-500"
           />
-
-          <div className="flex items-center gap-2 overflow-x-auto pb-1">
-            {areas.map((a) => {
-              const active = area === a
-              return (
-                <button
-                  key={a}
-                  type="button"
-                  onClick={() => setArea(a)}
-                  className={[
-                    'whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition',
-                    active
-                      ? 'bg-zinc-900 text-white dark:bg-zinc-50 dark:text-zinc-950'
-                      : 'border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800',
-                  ].join(' ')}
-                >
-                  {a === 'all' ? '全部区域' : a}
-                </button>
-              )
-            })}
-          </div>
         </div>
       </div>
 
@@ -168,7 +180,6 @@ export function GymListPage() {
           type="button"
           onClick={() => {
             setQuery('')
-            setArea('all')
             setAskResult(null)
           }}
           className="rounded-xl px-2 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-900"
@@ -190,12 +201,13 @@ export function GymListPage() {
                   {g.name}
                 </div>
                 <div className="mt-1 flex flex-wrap gap-1.5">
-                  <Chip>{g.area}</Chip>
-                  {g.beginnerFriendly === 'yes' ? <Chip>新手友好</Chip> : null}
+                  {g.isClosedForRouteSet === 'yes' ? <Chip>闭馆换线</Chip> : null}
                 </div>
               </div>
               <div className="shrink-0 text-sm text-zinc-500 dark:text-zinc-400">
-                查看
+                {userPos && g.lat != null && g.lng != null
+                  ? `${haversineKm(userPos, { lat: g.lat, lng: g.lng }).toFixed(1)} km`
+                  : '查看'}
               </div>
             </div>
           </Link>

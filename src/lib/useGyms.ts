@@ -10,8 +10,10 @@ type GymRow = {
   area: string
   address: string | null
   opening_hours: string | null
-  price_note: string | null
   price_single?: number | null
+  lng?: number | null
+  lat?: number | null
+  is_closed_for_routeset?: YesNoUnknown | null
   types: GymType[] | null
   beginner_friendly: YesNoUnknown | null
   route_set_frequency: string | null
@@ -29,8 +31,10 @@ function rowToGym(r: GymRow): Gym {
     area: r.area,
     address: r.address ?? '',
     openingHours: r.opening_hours ?? '',
-    priceNote: r.price_note ?? '',
     priceSingle: r.price_single ?? undefined,
+    lng: r.lng ?? undefined,
+    lat: r.lat ?? undefined,
+    isClosedForRouteSet: r.is_closed_for_routeset ?? 'unknown',
     types: r.types ?? [],
     beginnerFriendly: r.beginner_friendly ?? 'unknown',
     routeSetFrequency: r.route_set_frequency ?? '',
