@@ -37,10 +37,11 @@ export function GymListPage() {
       .filter((g) => (area === 'all' ? true : g.area === area))
       .filter((g) => {
         if (!q) return true
+        const price = g.priceSingle != null ? String(g.priceSingle) : ''
         return (
           normalize(g.name).includes(q) ||
           normalize(g.area).includes(q) ||
-          normalize(g.priceNote).includes(q)
+          normalize(price).includes(q)
         )
       })
   }, [area, gyms, query])

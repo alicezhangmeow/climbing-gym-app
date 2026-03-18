@@ -9,7 +9,6 @@ type ImportPayload = {
   address?: string
   openingHours?: string
   priceSingle?: number | null
-  priceNote?: string
   imageUrl?: string
 }
 
@@ -136,7 +135,7 @@ function suggestIdFromName(name: string, fallbackSeed: string): string {
 
 function buildBookmarklet(importUrlBase: string) {
   // Note: This runs on the review-site page. It only reads DOM of the current page.
-  const js = `(function(){function txt(el){return el?(el.innerText||el.textContent||'').trim():''}function firstLine(s){return (s||'').split(/\\n/)[0].trim()}function pickNameFromTitle(){var t=firstLine(document.title||'');t=t.replace(/-.*$/,'').trim();var m=t.match(/【([^】]+)】/);if(m&&m[1])return m[1].trim();t=t.split('_')[0].trim();t=t.split('电话')[0].trim();t=t.split('地址')[0].trim();t=t.split('价格')[0].trim();t=t.split('营业时间')[0].trim();return t.trim()}function pick(list,maxLen){for(let i=0;i<list.length;i++){const s=list[i];if(!s)continue;const v=s.trim();if(!v)continue;if(maxLen&&v.length>maxLen)continue;if(/(点评|收藏|热门榜|榜单|更多|展开|收起)/.test(v))continue;return v}return ''}function numFrom(s){const m=(s||'').match(/¥\\s*(\\d{2,4})/);return m&&m[1]?Number(m[1]):null}function guess(){const nodes=Array.from(document.querySelectorAll('div,span,p,li'));const addrCandidates=[];const openCandidates=[];const avgCandidates=[];const ticketCandidates=[];for(const el of nodes){const s=txt(el);if(!s)continue;if(s.length>120)continue;if(/(号.*(室|楼)|\\d+号)/.test(s)&&/(路|街|大道|弄|号)/.test(s))addrCandidates.push(s);if(/(营业中|休息中)/.test(s)||/\\d{1,2}:\\d{2}\\s*[-~到]\\s*\\d{1,2}:\\d{2}/.test(s))openCandidates.push(s);if(/(人均|消费)[:：]?\\s*¥?\\s*\\d+/.test(s))avgCandidates.push(s);if(/¥\\s*\\d{2,4}/.test(s)&&/(门票|不限时|单人|攀岩|票|团购)/.test(s)&&!/(租|装备|鞋|镁|水|饮料)/.test(s))ticketCandidates.push(s)}let address=pick(addrCandidates,48);let opening=pick(openCandidates,48);if(opening){const m=opening.match(/(\\d{1,2}:\\d{2})\\s*[-~到]\\s*(\\d{1,2}:\\d{2})/);if(m)opening='每日 '+m[1]+'–'+m[2]}let priceLine=pick(avgCandidates,32);let priceSingle=numFrom(priceLine);if(priceSingle==null){let best=null;let bestLine='';for(const s of ticketCandidates){const n=numFrom(s);if(n==null)continue;if(n<50)continue;if(best==null||n<best){best=n;bestLine=s}}if(best!=null){priceSingle=best;priceLine=bestLine}}let img='';const im=document.querySelector('img');if(im&&im.src)img=im.src;return{address:address,opening:opening,priceLine:priceLine,priceSingle:priceSingle,imageUrl:img}}const g=guess();const payload={sourceUrl:location.href,name:pickNameFromTitle(),address:g.address,openingHours:g.opening,priceSingle:g.priceSingle,priceNote:g.priceLine||'',imageUrl:g.imageUrl||''};const json=JSON.stringify(payload);const b64=btoa(String.fromCharCode.apply(null,new TextEncoder().encode(json)));location.href='${importUrlBase}#'+encodeURIComponent(b64);})();`
+  const js = `(function(){function txt(el){return el?(el.innerText||el.textContent||'').trim():''}function firstLine(s){return (s||'').split(/\\n/)[0].trim()}function pickNameFromTitle(){var t=firstLine(document.title||'');t=t.replace(/-.*$/,'').trim();var m=t.match(/【([^】]+)】/);if(m&&m[1])return m[1].trim();t=t.split('_')[0].trim();t=t.split('电话')[0].trim();t=t.split('地址')[0].trim();t=t.split('价格')[0].trim();t=t.split('营业时间')[0].trim();return t.trim()}function pick(list,maxLen){for(let i=0;i<list.length;i++){const s=list[i];if(!s)continue;const v=s.trim();if(!v)continue;if(maxLen&&v.length>maxLen)continue;if(/(点评|收藏|热门榜|榜单|更多|展开|收起)/.test(v))continue;return v}return ''}function numFrom(s){const m=(s||'').match(/¥\\s*(\\d{2,4})/);return m&&m[1]?Number(m[1]):null}function guess(){const nodes=Array.from(document.querySelectorAll('div,span,p,li'));const addrCandidates=[];const openCandidates=[];const avgCandidates=[];const ticketCandidates=[];for(const el of nodes){const s=txt(el);if(!s)continue;if(s.length>120)continue;if(/(号.*(室|楼)|\\d+号)/.test(s)&&/(路|街|大道|弄|号)/.test(s))addrCandidates.push(s);if(/(营业中|休息中)/.test(s)||/\\d{1,2}:\\d{2}\\s*[-~到]\\s*\\d{1,2}:\\d{2}/.test(s))openCandidates.push(s);if(/(人均|消费)[:：]?\\s*¥?\\s*\\d+/.test(s))avgCandidates.push(s);if(/¥\\s*\\d{2,4}/.test(s)&&/(门票|不限时|单人|攀岩|票|团购)/.test(s)&&!/(租|装备|鞋|镁|水|饮料)/.test(s))ticketCandidates.push(s)}let address=pick(addrCandidates,48);let opening=pick(openCandidates,48);if(opening){const m=opening.match(/(\\d{1,2}:\\d{2})\\s*[-~到]\\s*(\\d{1,2}:\\d{2})/);if(m)opening='每日 '+m[1]+'–'+m[2]}let priceLine=pick(avgCandidates,32);let priceSingle=numFrom(priceLine);if(priceSingle==null){let best=null;for(const s of ticketCandidates){const n=numFrom(s);if(n==null)continue;if(n<50)continue;if(best==null||n<best){best=n}}if(best!=null){priceSingle=best}}let img='';const im=document.querySelector('img');if(im&&im.src)img=im.src;return{address:address,opening:opening,priceSingle:priceSingle,imageUrl:img}}const g=guess();const payload={sourceUrl:location.href,name:pickNameFromTitle(),address:g.address,openingHours:g.opening,priceSingle:g.priceSingle,imageUrl:g.imageUrl||''};const json=JSON.stringify(payload);const b64=btoa(String.fromCharCode.apply(null,new TextEncoder().encode(json)));location.href='${importUrlBase}#'+encodeURIComponent(b64);})();`
   return `javascript:${js}`
 }
 
@@ -164,7 +163,6 @@ export function ImportPage() {
   const [priceSingle, setPriceSingle] = useState<string>(
     payload?.priceSingle != null ? String(payload.priceSingle) : '',
   )
-  const [priceNote, setPriceNote] = useState(payload?.priceNote ?? '')
   const [imageUrl, setImageUrl] = useState(payload?.imageUrl ?? '')
 
   const [saving, setSaving] = useState(false)
@@ -191,14 +189,17 @@ export function ImportPage() {
     const pNum = p ? Number(p) : null
 
     const finalId = (id || computedId).trim()
+    const finalAddress = address.trim()
+    const inferredArea = guessAreaFromAddress(finalAddress)
+    const finalArea = area.trim() || inferredArea
     const row: GymUpsertRow = {
       id: finalId,
       name: name.trim(),
       city: city.trim() || '上海',
-      area: area.trim(),
-      address: address.trim() || null,
+      area: finalArea,
+      address: finalAddress || null,
       opening_hours: openingHours.trim() || null,
-      price_note: priceNote.trim() || null,
+      price_note: null,
       price_single: pNum == null || Number.isNaN(pNum) ? null : pNum,
       types: ['抱石'],
       beginner_friendly: 'yes',
@@ -364,16 +365,6 @@ export function ImportPage() {
             <input
               value={priceSingle}
               onChange={(e) => setPriceSingle(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
-            />
-          </label>
-          <label className="rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-              价格备注
-            </div>
-            <input
-              value={priceNote}
-              onChange={(e) => setPriceNote(e.target.value)}
               className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
             />
           </label>
