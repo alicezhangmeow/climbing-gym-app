@@ -16,28 +16,30 @@
 
 在 **Supabase → SQL Editor** 执行前，请把下面 SQL 里的 `id` 换成你库里实际存在的岩馆 id（可先 `select id, name from public.gyms;` 查一下）。
 
+**「近7天换线」** 依赖 `last_route_set_at` 在“当前时间 7 天内”。下面 SQL 用 `now() - interval '2 days'`，执行后这几家会立刻显示「近7天换线」；若之前用的是固定日期（如 2025-03-12）且已过期，请重新执行本段 SQL。
+
 ```sql
 -- 1. 确保列存在
 alter table public.gyms add column if not exists has_gear_rental text;
 
--- 2. 按 id 更新 mock（按你实际 id 修改）
+-- 2. 按 id 更新 mock（按你实际 id 修改；last_route_set_at 用“当前减 2 天”保证在近 7 天内）
 update public.gyms set
   opening_hours = '周一至周日 10:00-22:00',
-  last_route_set_at = '2025-03-12T00:00:00.000Z',
+  last_route_set_at = (now() - interval '2 days')::text,
   types = '["抱石","K板"]'::jsonb,
   has_gear_rental = 'yes'
 where id = 'benchmark';
 
 update public.gyms set
   opening_hours = '周一至周日 10:00-22:00',
-  last_route_set_at = '2025-03-14T00:00:00.000Z',
+  last_route_set_at = (now() - interval '2 days')::text,
   types = '["抱石","K板","顶绳互保"]'::jsonb,
   has_gear_rental = 'no'
 where id = 'betabouldersnandian';
 
 update public.gyms set
   opening_hours = '周一至周日 10:00-22:00',
-  last_route_set_at = '2025-03-10T00:00:00.000Z',
+  last_route_set_at = (now() - interval '2 days')::text,
   types = '["抱石"]'::jsonb,
   has_gear_rental = 'unknown'
 where id = 'pinkboulderingbao';

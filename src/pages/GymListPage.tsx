@@ -1,14 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
+import { AskFloatingEntry } from '../components/AskFloatingEntry'
 import { GymTags } from '../components/GymTags'
 import { useGyms } from '../lib/useGyms'
 import { supabase } from '../lib/supabase'
-import {
-  parseAskIntent,
-  filterAndSortGyms,
-  formatAskReply,
-} from '../lib/askGym'
 import type { Gym } from '../lib/types'
 
 function normalize(s: string) {
@@ -30,12 +26,6 @@ function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: num
 export function GymListPage() {
   const { gyms, loading, source, refresh } = useGyms()
   const [query, setQuery] = useState('')
-  const [askInput, setAskInput] = useState('')
-  const [askResult, setAskResult] = useState<{
-    summary: string
-    subtext: string
-    list: Gym[]
-  } | null>(null)
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null)
 
   const filtered = useMemo(() => {
@@ -67,8 +57,7 @@ export function GymListPage() {
     })
   }, [filtered, userPos])
 
-  const displayList = askResult ? askResult.list : sortedByDistance
-  const showAskReply = askResult !== null
+  const displayList = sortedByDistance
 
   useEffect(() => {
     if (source !== 'supabase') return
@@ -151,16 +140,6 @@ export function GymListPage() {
     }
   }, [gyms, refresh, source])
 
-  const handleAskSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    const text = askInput.trim()
-    if (!text) return
-    const intent = parseAskIntent(text)
-    const list = filterAndSortGyms(gyms, intent)
-    const { summary, subtext } = formatAskReply(intent, list)
-    setAskResult({ summary, subtext, list })
-  }
-
   return (
     <AppShell>
       <div className="mb-4">
@@ -176,46 +155,6 @@ export function GymListPage() {
         </div>
       </div>
 
-      <div className="mb-4 rounded-2xl border border-zinc-200 bg-zinc-50/80 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
-        <div className="text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-2">
-          问一问
-        </div>
-        <form onSubmit={handleAskSubmit} className="flex gap-2">
-          <input
-            type="text"
-            value={askInput}
-            onChange={(e) => setAskInput(e.target.value)}
-            placeholder="例如：周四下班去附近爬抱石，价格低一点"
-            className="flex-1 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-300 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder:text-zinc-500"
-          />
-          <button
-            type="submit"
-            className="shrink-0 rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-          >
-            推荐
-          </button>
-        </form>
-        {showAskReply && askResult && (
-          <div className="mt-3 rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-900">
-            <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
-              {askResult.summary}
-            </p>
-            {askResult.subtext ? (
-              <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                {askResult.subtext}
-              </p>
-            ) : null}
-            <button
-              type="button"
-              onClick={() => setAskResult(null)}
-              className="mt-2 text-xs text-zinc-500 underline hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
-            >
-              收起，看全部列表
-            </button>
-          </div>
-        )}
-      </div>
-
       <div className="sticky top-[56px] z-10 -mx-4 mb-4 border-b border-zinc-200 bg-zinc-50/90 px-4 py-3 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80">
         <div className="flex flex-col gap-2">
           <input
@@ -229,22 +168,18 @@ export function GymListPage() {
 
       <div className="flex items-center justify-between">
         <div className="text-sm text-zinc-600 dark:text-zinc-300">
-          {showAskReply ? '推荐 ' : '共 '}
-          <span className="font-semibold">{displayList.length}</span> 家
+          共 <span className="font-semibold">{displayList.length}</span> 家
         </div>
         <button
           type="button"
-          onClick={() => {
-            setQuery('')
-            setAskResult(null)
-          }}
+          onClick={() => setQuery('')}
           className="rounded-xl px-2 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-900"
         >
           重置
         </button>
       </div>
 
-      <div className="mt-3 space-y-3">
+      <div className="mt-3 space-y-3 pb-24">
         {displayList.map((g) => (
           <Link
             key={g.id}
@@ -269,6 +204,8 @@ export function GymListPage() {
           </Link>
         ))}
       </div>
+
+      <AskFloatingEntry />
     </AppShell>
   )
 }
