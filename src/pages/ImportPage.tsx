@@ -28,6 +28,7 @@ type GymUpsertRow = {
   last_route_set_at: string | null
   has_classes: 'yes' | 'no' | 'unknown'
   has_events: 'yes' | 'no' | 'unknown'
+  has_gear_rental: 'yes' | 'no' | 'unknown' | null
   social_sources: any[]
   image_urls: string[]
 }
@@ -208,6 +209,7 @@ export function ImportPage() {
       last_route_set_at: null,
       has_classes: 'unknown',
       has_events: 'unknown',
+      has_gear_rental: null,
       social_sources: [],
       image_urls: imageUrl.trim() ? [imageUrl.trim()] : [],
     }

@@ -1,6 +1,14 @@
 export type YesNoUnknown = 'yes' | 'no' | 'unknown'
 
-export type GymType = '抱石' | '领先' | '顶绳'
+/** 岩馆类型：抱石、K板、顶绳自保、顶绳互保、先锋攀爬；兼容旧值 领先、顶绳 */
+export type GymType =
+  | '抱石'
+  | 'K板'
+  | '顶绳自保'
+  | '顶绳互保'
+  | '先锋攀爬'
+  | '领先'
+  | '顶绳'
 
 export type SocialSourceType =
   | 'wechat_mp'
@@ -41,6 +49,8 @@ export type Gym = {
 
   hasClasses: YesNoUnknown
   hasEvents: YesNoUnknown
+  /** 是否提供装备租赁；no 时展示「无装备租赁」 */
+  hasGearRental?: YesNoUnknown
 
   socialSources: SocialSource[]
 }

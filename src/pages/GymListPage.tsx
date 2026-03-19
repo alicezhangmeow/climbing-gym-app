@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
-import { Chip } from '../components/Chip'
+import { GymTags } from '../components/GymTags'
 import { useGyms } from '../lib/useGyms'
 import { supabase } from '../lib/supabase'
 import {
@@ -256,8 +256,8 @@ export function GymListPage() {
                 <div className="truncate text-base font-semibold text-zinc-900 dark:text-zinc-50">
                   {g.name}
                 </div>
-                <div className="mt-1 flex flex-wrap gap-1.5">
-                  {g.isClosedForRouteSet === 'yes' ? <Chip>闭馆换线</Chip> : null}
+                <div className="mt-1">
+                  <GymTags gym={g} />
                 </div>
                 {userPos && g.lat != null && g.lng != null ? (
                   <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">

@@ -1,6 +1,6 @@
 import { Link, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
-import { Chip } from '../components/Chip'
+import { GymTags } from '../components/GymTags'
 import { useGym } from '../lib/useGyms'
 import { useLatestActivities } from '../lib/useLatestActivities'
 import { useSocialPostsV0 } from '../lib/useSocialPostsV0'
@@ -39,7 +39,6 @@ export function GymDetailPage() {
   const { posts: socialPosts, loading: socialLoading, error: socialError, refresh: refreshSocial } =
     useSocialPostsV0(gymId, 20)
   const priceText = gym?.priceSingle != null ? `¥${gym.priceSingle}` : '暂无'
-  const showBouldering = !!gym?.types?.includes('抱石')
   const [adding, setAdding] = useState(false)
   const [addPlatform, setAddPlatform] = useState('xhs')
   const [addUrl, setAddUrl] = useState('')
@@ -115,9 +114,8 @@ export function GymDetailPage() {
             <div className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
               {gym.name}
             </div>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {showBouldering ? <Chip>抱石</Chip> : null}
-              {gym.beginnerFriendly === 'yes' ? <Chip>新手友好</Chip> : null}
+            <div className="mt-2">
+              <GymTags gym={gym} />
             </div>
 
             <div className="mt-3 grid grid-cols-1 gap-3">

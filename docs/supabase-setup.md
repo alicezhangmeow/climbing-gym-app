@@ -42,6 +42,7 @@ create table if not exists public.gyms (
 
   has_classes text,
   has_events text,
+  has_gear_rental text,
 
   social_sources jsonb
 );
@@ -92,7 +93,19 @@ on conflict (id) do update set
   social_sources = excluded.social_sources;
 ```
 
-## 4. 验证
+## 4. 扩展字段（可选）
+
+若表已存在，可单独加列（岩馆标签：装备租赁、类型扩展等）：
+
+```sql
+alter table public.gyms add column if not exists has_gear_rental text;
+```
+
+`types` 为 jsonb 数组，可存：抱石、K板、顶绳自保、顶绳互保、先锋攀爬、领先、顶绳。  
+`last_route_set_at` 为最近换线时间（ISO 字符串），用于展示「近7天换线」标签。  
+`opening_hours` 建议格式如 `周一至周日 10:00-22:00`，用于计算「休息中」。
+
+## 5. 验证
 
 1. 本地项目新建 `.env.local`，填入 URL 和 Key
 2. 重启 `npm run dev`

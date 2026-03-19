@@ -16,6 +16,7 @@ type GymRow = {
   is_closed_for_routeset?: YesNoUnknown | null
   types: GymType[] | null
   beginner_friendly: YesNoUnknown | null
+  has_gear_rental?: YesNoUnknown | null
   route_set_frequency: string | null
   last_route_set_at: string | null
   has_classes: YesNoUnknown | null
@@ -37,6 +38,7 @@ function rowToGym(r: GymRow): Gym {
     isClosedForRouteSet: r.is_closed_for_routeset ?? 'unknown',
     types: r.types ?? [],
     beginnerFriendly: r.beginner_friendly ?? 'unknown',
+    hasGearRental: r.has_gear_rental ?? undefined,
     routeSetFrequency: r.route_set_frequency ?? '',
     lastRouteSetAt: r.last_route_set_at ?? '',
     hasClasses: r.has_classes ?? 'unknown',
